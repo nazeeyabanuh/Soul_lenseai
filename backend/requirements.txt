@@ -1,0 +1,12 @@
+fastapi==0.136.3
+uvicorn==0.48.0
+sqlalchemy==2.0.50
+pydantic==2.13.4
+python-dotenv==1.2.2
+anthropic==0.109.2
+httpx==0.28.1
+requests==2.34.2
+pandas==3.0.3
+matplotlib==3.11.0
+ollama==0.6.2
+python-dateutil==2.9.0.post0
