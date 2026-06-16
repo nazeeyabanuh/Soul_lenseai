@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>SoulLens AI</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1 class="title">
+        SoulLens AI
+    </h1>
+
+    <p class="subtitle">
+        Decode emotions. Reveal intentions.
+    </p>
+
+    <div class="orb" id="emotionOrb"></div>
+
+    <textarea
+        id="textInput"
+        placeholder="Express your thoughts..."
+    ></textarea>
+
+    <textarea
+    id="personA"
+    placeholder="Person A message..."
+></textarea>
+
+<textarea
+    id="personB"
+    placeholder="Person B message..."
+></textarea>
+
+<button id="relationshipBtn">
+    Analyze Relationship
+</button>
+
+
+    <div class="button-group">
+
+        <button id="analyzeBtn">
+            Analyze Emotion
+        </button>
+
+        <button id="historyBtn">
+            View History
+        </button>
+        <button id="chartBtn">
+    Emotion Chart
+</button>
+     <button id="dashboardBtn">
+    Dashboard
+</button>
+    </div>
+
+<div class="timeline-section">
+
+    <h2>🕒 Emotional Timeline</h2>
+
+    <button id="timelineBtn">
+        View Timeline
+    </button>
+
+    <div id="timelineContainer"></div>
+
+</div>
+
+    <div class="results">
+
+        <div class="card">
+
+            <h2>🧠 Emotion</h2>
+
+            <p id="mind">
+                Waiting...
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h2>❤️ Emotional Insight</h2>
+
+            <p id="heart">
+                Waiting...
+            </p>
+
+        </div>
+
+     <div class="card">
+    <h2>🧠 SoulLens Insight</h2>
+    <p id="insight">
+        Waiting...
+    </p>
+</div>
+
+        <div class="card">
+
+            <h2>🤖 AI Analysis</h2>
+
+            <p id="aiAnalysis">
+                Waiting...
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+    <h2>💬 Relationship Analysis</h2>
+
+    <p id="relationshipResult">
+        Waiting...
+    </p>
+
+</div>
+
+    <div class="history-section">
+
+        <h2>
+            📜 Analysis History
+        </h2>
+
+        <div id="historyContainer">
+<div id="dashboardContainer"></div>
+<div id="chartContainer"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
