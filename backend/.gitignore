@@ -1,0 +1,12 @@
+# Venv
+Include/
+Lib/
+Scripts/
+share/
+venv/
+pyvenv.cfg
+__pycache__/
+*.pyc
+.env
+*.db
+*.png
