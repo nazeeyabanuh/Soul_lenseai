@@ -1,21 +1,17 @@
-import json
-import google.generativeai as genai
+﻿import json
 import os
+from groq import Groq
 
 try:
-    from genai import generative_ai  # type: ignore[import]
-except ImportError:  # pragma: no cover - optional dependency
-    generative_ai = None
-
-try:
-    from dotenv import load_dotenv  # type: ignore[import]
-except ImportError:  # pragma: no cover - optional dependency
+    from dotenv import load_dotenv
+except ImportError:
     def load_dotenv():
         return False
 
 load_dotenv()
 
-client = genai.configure(api_key=os.getenv("GEMINI_API_KEY")) if os.getenv("GEMINI_API_KEY") else None
+groq_api_key = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=groq_api_key) if groq_api_key else None
 
 
 MANIPULATION_RULES = {
@@ -32,8 +28,8 @@ MANIPULATION_RULES = {
     "Victim Signaling": ["nobody cares", "no one cares", "everyone ignores me", "i always suffer", "i am always alone", "nobody understands me"],
     "Love Bombing": ["i can't live without you", "you are my everything", "i will do anything for you", "you are perfect", "i need you forever", "you complete me"],
     "Emotional Withdrawal / Silent Treatment": ["silent treatment", "ignore me and see", "if you stop talking to me", "don't speak to me", "i'll disappear if you leave"],
-    "Obligation Pressure": ["you owe me", "you must do this", "you need to do this", "you have to do this"],
-    "Emotional Invalidation": ["you are overreacting", "you are too sensitive", "don't be dramatic", "stop being childish"],
+    "Obligation Pressure": ["you owe me", "you must do this", "you need to do this", "you have to dothis"],
+    "Emotional Invalidation": ["you are overreacting", "you are too sensitive", "don't be dramatic","stop being childish"],
     "Dependency Creation": ["i can't live without you", "you are my everything", "i need you forever", "you complete me"],
 }
 
@@ -55,16 +51,6 @@ def _fallback_manipulation_analysis(text: str):
     confidence = round(min(0.98, 0.35 + (count * 0.12) + (0.08 if escalation else 0.0)), 2)
     primary_influencer = "Unclear"
 
-    if "person a:" in lowered and "person b:" in lowered:
-        a_hits = sum(1 for phrase in ["you owe me", "if you really loved me", "never", "always", "ignore me", "nobody cares"] if phrase in lowered)
-        b_hits = sum(1 for phrase in ["you owe me", "if you really loved me", "never", "always", "ignore me", "nobody cares"] if phrase in lowered)
-        if a_hits > b_hits:
-            primary_influencer = "Person A"
-        elif b_hits > a_hits:
-            primary_influencer = "Person B"
-        else:
-            primary_influencer = "Balanced"
-
     return {
         "manipulation_detected": bool(unique_types),
         "types": unique_types,
@@ -77,36 +63,27 @@ def _fallback_manipulation_analysis(text: str):
         "reasoning": "Guilt, pressure, or dependency language is present." if unique_types else "No manipulation patterns were detected.",
     }
 
+
 def get_ai_response(prompt: str):
-
-    api_key = os.getenv("GEMINI_API_KEY")
-
-    if not api_key:
-        return "Gemini API key not found"
+    if client is None:
+        return "Groq API key not found"
 
     try:
-
-        model = genai.GenerativeModel(
-            "gemini-2.5-flash"
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
         )
-
-        response = model.generate_content(
-            prompt
-        )
-
-        return response.text
-
+        return response.choices[0].message.content
     except Exception as e:
-
-        print("GEMINI ERROR:", e)
-
-        return f"Gemini Error: {str(e)}"
+        print("GROQ ERROR:", e)
+        return f"Groq Error: {str(e)}"
 
 
 def detect_manipulation_ai(text: str):
     fallback = _fallback_manipulation_analysis(text)
 
-    if client is None or not os.getenv("GEMINI_API_KEY"):
+    if client is None:
         return json.dumps(fallback)
 
     try:
@@ -133,7 +110,7 @@ DETECT THESE TYPES:
 - Emotional Invalidation
 - Dependency Creation
 
-OUTPUT ONLY VALID JSON:
+OUTPUT ONLY VALID JSON, no markdown, no code blocks, just raw JSON:
 {{
   "manipulation_detected": true,
   "types": ["Guilt Tripping"],
@@ -147,18 +124,19 @@ OUTPUT ONLY VALID JSON:
 }}
 """
 
-        response = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=1024,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
         )
 
-        content = response.content[0].text
+        content = response.choices[0].message.content.strip()
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+        content = content.strip()
+
         parsed = json.loads(content)
 
         if isinstance(parsed, dict):
@@ -172,7 +150,7 @@ OUTPUT ONLY VALID JSON:
             parsed.setdefault("confidence", 0.0)
             parsed.setdefault("reasoning", "Manipulation pattern detected.")
             return json.dumps(parsed)
-    except Exception:
-        pass
+    except Exception as e:
+        print("MANIPULATION DETECTION ERROR:", e)
 
     return json.dumps(fallback)
