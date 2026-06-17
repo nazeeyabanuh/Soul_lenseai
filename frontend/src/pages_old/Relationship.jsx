@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 function Relationship() {
 
@@ -11,7 +11,7 @@ function Relationship() {
   async function analyzeRelationship() {
 
     const response = await fetch(
-      "http://127.0.0.1:8000/relationship",
+      "https://soul-lenseai.onrender.com/relationship",
       {
         method: "POST",
         headers: {
@@ -30,7 +30,7 @@ function Relationship() {
   }
 
   async function analyzeFullConversation() {
-    const response = await fetch("http://127.0.0.1:8000/conversation-analysis", {
+    const response = await fetch("https://soul-lenseai.onrender.com/conversation-analysis", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ conversation }),
