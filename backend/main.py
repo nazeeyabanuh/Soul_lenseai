@@ -56,6 +56,7 @@ def analyze(input: TextInput):
         emotion_data = json.loads(cleaned_response.strip())
     except Exception as e:
         print("EMOTION PARSE ERROR:", str(e))
+        emotion_data = {"emotion": "neutral", "sentiment": "neutral", "style": "unknown", "emotional_need": "Unable to determine", "ai_analysis": "Analysis unavailable", "insight": "Try again later"}
 
     manipulation_raw = detect_manipulation_ai(input.text)
     manipulation = json.loads(manipulation_raw)
@@ -112,3 +113,87 @@ def get_dashboard():
         return {"total_analyses": total, "emotion_breakdown": emotions, "manipulation_count": manipulation_count}
     finally:
         db.close()
+
+class RelationshipInput(BaseModel):
+    person_a: str
+    person_b: str
+
+class ConversationInput(BaseModel):
+    conversation: str
+
+@app.post("/relationship")
+def analyze_relationship(input: RelationshipInput):
+    combined_text = "Person A: " + input.person_a + "\nPerson B: " + input.person_b
+
+    manipulation_raw = detect_manipulation_ai(combined_text)
+    manipulation = json.loads(manipulation_raw)
+
+    a_raw = detect_manipulation_ai(input.person_a)
+    a_data = json.loads(a_raw)
+    b_raw = detect_manipulation_ai(input.person_b)
+    b_data = json.loads(b_raw)
+
+    prompt = "Analyze this relationship exchange between two people and give a 2-3 sentence analysis: " + combined_text
+    try:
+        analysis_text = get_ai_response(prompt)
+        cleaned = analysis_text.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("```")[1]
+            if cleaned.startswith("json"):
+                cleaned = cleaned[4:]
+        analysis_text = cleaned.strip()
+    except Exception:
+        analysis_text = "Unable to generate detailed analysis at this time."
+
+    return {
+        "analysis": analysis_text,
+        "manipulation_detected": manipulation.get("manipulation_detected", False),
+        "types": manipulation.get("types", []),
+        "primary_influencer": manipulation.get("primary_influencer", "Unclear"),
+        "emotional_tone": manipulation.get("emotional_tone", "Neutral"),
+        "toxicity_score": manipulation.get("toxicity_score", 0),
+        "confidence": manipulation.get("confidence", 0),
+        "risk_level": manipulation.get("risk_level", "Low"),
+        "escalation_detected": manipulation.get("escalation_detected", False),
+        "reasoning": manipulation.get("reasoning", ""),
+        "person_a": {
+            "manipulation_detected": a_data.get("manipulation_detected", False),
+            "type": ", ".join(a_data.get("types", [])),
+            "reason": a_data.get("reasoning", "")
+        },
+        "person_b": {
+            "manipulation_detected": b_data.get("manipulation_detected", False),
+            "type": ", ".join(b_data.get("types", [])),
+            "reason": b_data.get("reasoning", "")
+        }
+    }
+
+@app.post("/conversation-analysis")
+def analyze_conversation(input: ConversationInput):
+    manipulation_raw = detect_manipulation_ai(input.conversation)
+    manipulation = json.loads(manipulation_raw)
+
+    prompt = "Summarize this conversation in 2-3 sentences, focusing on emotional dynamics: " + input.conversation
+    try:
+        summary = get_ai_response(prompt)
+        cleaned = summary.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("```")[1]
+            if cleaned.startswith("json"):
+                cleaned = cleaned[4:]
+        summary = cleaned.strip()
+    except Exception:
+        summary = "Unable to generate summary at this time."
+
+    return {
+        "conversation_summary": summary,
+        "manipulation_detected": manipulation.get("manipulation_detected", False),
+        "types": manipulation.get("types", []),
+        "primary_influencer": manipulation.get("primary_influencer", "Unclear"),
+        "emotional_tone": manipulation.get("emotional_tone", "Neutral"),
+        "toxicity_score": manipulation.get("toxicity_score", 0),
+        "confidence": manipulation.get("confidence", 0),
+        "risk_level": manipulation.get("risk_level", "Low"),
+        "escalation_detected": manipulation.get("escalation_detected", False),
+        "reasoning": manipulation.get("reasoning", "")
+    }
