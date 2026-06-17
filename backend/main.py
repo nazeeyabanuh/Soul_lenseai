@@ -48,10 +48,14 @@ def analyze(input: TextInput):
     try:
         ai_response = get_ai_response(prompt)
         print("RAW AI RESPONSE:", ai_response)
-        emotion_data = json.loads(ai_response)
+        cleaned_response = ai_response.strip()
+        if cleaned_response.startswith("```"):
+            cleaned_response = cleaned_response.split("```")[1]
+            if cleaned_response.startswith("json"):
+                cleaned_response = cleaned_response[4:]
+        emotion_data = json.loads(cleaned_response.strip())
     except Exception as e:
         print("EMOTION PARSE ERROR:", str(e))
-        emotion_data = {"emotion": "neutral", "sentiment": "neutral", "style": "unknown", "emotional_need": "Unable to determine", "ai_analysis": "Analysis unavailable", "insight": "Try again later"}
 
     manipulation_raw = detect_manipulation_ai(input.text)
     manipulation = json.loads(manipulation_raw)
