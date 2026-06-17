@@ -106,11 +106,25 @@ def get_dashboard():
         total = len(records)
         emotions = {}
         manipulation_count = 0
+        positive_count = 0
+        negative_count = 0
         for r in records:
             emotions[r.emotion] = emotions.get(r.emotion, 0) + 1
             if r.manipulation_type and r.manipulation_type != "None":
                 manipulation_count += 1
-        return {"total_analyses": total, "emotion_breakdown": emotions, "manipulation_count": manipulation_count}
+            if r.sentiment == "positive":
+                positive_count += 1
+            elif r.sentiment == "negative":
+                negative_count += 1
+        most_common_emotion = max(emotions, key=emotions.get) if emotions else "N/A"
+        return {
+            "total_analyses": total,
+            "emotion_breakdown": emotions,
+            "manipulation_count": manipulation_count,
+            "most_common_emotion": most_common_emotion,
+            "positive_messages": positive_count,
+            "negative_messages": negative_count
+        }
     finally:
         db.close()
 
