@@ -47,8 +47,10 @@ def analyze(input: TextInput):
     prompt = "You are an expert emotion analyst. Analyze this message: " + input.text + "\nReturn ONLY valid JSON:\n{\"emotion\": \"joy/sadness/anger/fear/neutral\", \"sentiment\": \"positive/negative/neutral\", \"style\": \"assertive/passive/aggressive\", \"emotional_need\": \"one short sentence\", \"ai_analysis\": \"two sentence analysis\", \"insight\": \"one actionable insight\"}"
     try:
         ai_response = get_ai_response(prompt)
+        print("RAW AI RESPONSE:", ai_response)
         emotion_data = json.loads(ai_response)
-    except Exception:
+    except Exception as e:
+        print("EMOTION PARSE ERROR:", str(e))
         emotion_data = {"emotion": "neutral", "sentiment": "neutral", "style": "unknown", "emotional_need": "Unable to determine", "ai_analysis": "Analysis unavailable", "insight": "Try again later"}
 
     manipulation_raw = detect_manipulation_ai(input.text)
